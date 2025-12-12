@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catalogue de Films</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+      font-size: 2.5em;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .search-bar {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .search-bar input {
+      width: 300px;
+      padding: 12px 20px;
+      font-size: 1em;
+      border: none;
+      border-radius: 25px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    
+    .search-bar input::placeholder {
+      color: #999;
+    }
+    
+    .films-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 25px;
+      margin-bottom: 40px;
+    }
+    
+    .film-card {
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .film-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+    }
+    
+    .film-poster {
+      width: 100%;
+      height: 300px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 3em;
+      text-align: center;
+      padding: 10px;
+    }
+
+    .film-poster img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    
+    .film-info {
+      padding: 20px;
+    }
+    
+    .film-info h3 {
+      color: #333;
+      margin-bottom: 8px;
+      font-size: 1.2em;
+    }
+    
+    .film-year {
+      color: #888;
+      font-size: 0.9em;
+      margin-bottom: 8px;
+    }
+    
+    .film-genre {
+      color: #667eea;
+      font-size: 0.85em;
+      font-weight: bold;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+    
+    .film-director {
+      color: #666;
+      font-size: 0.9em;
+      margin-bottom: 10px;
+    }
+    
+    .film-description {
+      color: #555;
+      font-size: 0.9em;
+      line-height: 1.4;
+      margin-bottom: 12px;
+    }
+    
+    .film-rating {
+      color: #ffc107;
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+    
+    .film-rating::before {
+      content: "★ ";
+    }
+    
+    .filter-buttons {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .filter-buttons button {
+      background: white;
+      border: none;
+      padding: 10px 20px;
+      margin: 5px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: bold;
+      color: #667eea;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    
+    .filter-buttons button:hover {
+      background: #667eea;
+      color: white;
+      transform: scale(1.05);
+    }
+    
+    .filter-buttons button.active {
+      background: #667eea;
+      color: white;
+    }
+    
+    footer {
+      text-align: center;
+      color: white;
+      padding: 20px;
+      border-top: 1px solid rgba(255,255,255,0.2);
+      margin-top: 40px;
+    }
+    /* Modal fiche de film */
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.6);
+      z-index: 9999;
+      padding: 20px;
+    }
+
+    .modal.open { display: flex; }
+
+    .modal-card {
+      background: #fff;
+      border-radius: 10px;
+      max-width: 900px;
+      width: 100%;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+    }
+
+    .modal-poster { height: 100%; }
+
+    .modal-poster img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    .modal-content { padding: 24px; color: #222; }
+
+    .modal-content h2 { margin-top: 0; }
+
+    .modal-close { position: absolute; right: 24px; top: 20px; background: transparent; border: none; color: #fff; font-size: 1.6em; cursor: pointer; }
+
+    @media (max-width: 800px) {
+      .modal-card { grid-template-columns: 1fr; }
+      .film-poster { height: 220px; }
+    }
+/* MODE SOMBRE */
+.dark-mode {
+  background: #121212 !important;
+  color: white !important;
+}
+
+.dark-mode h1,
+.dark-mode h2,
+.dark-mode p,
+.dark-mode .film-info h3 {
+  color: white !important;
+}
+
+.dark-mode .film-card {
+  background: #1e1e1e !important;
+  box-shadow: 0 8px 20px rgba(255,255,255,0.1);
+}
+
+.dark-mode .filter-buttons button {
+  background: #1e1e1e;
+  color: white;
+}
+
+.dark-mode .filter-buttons button.active {
+  background: #764ba2;
+}
+
+.dark-mode footer {
+  color: white;
+}
+
+.dark-mode .modal-card {
+  background: #1e1e1e !important;
+  color: white !important;
+}
+
+.dark-mode #toggleTheme {
+  background: #333 !important;
+  color: white !important;
+}
+
+  </style>
+</head>
+<body>
+<button id="toggleTheme" style="
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: white;
+  color: black;
+  font-weight: bold;
+  z-index: 9999;
+">
+🌞 / 🌙
+</button>
+
+  <div class="container">
+    <h1>🎬 Catalogue de Films</h1>
+    
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Rechercher un film...">
+    </div>
+    
+    <div class="filter-buttons">
+      <button class="active" onclick="filterGenre('Tous')">Tous</button>
+      <button onclick="filterGenre('Action')">Action</button>
+      <button onclick="filterGenre('Drame')">Drame</button>
+      <button onclick="filterGenre('Comédie')">Comédie</button>
+      <button onclick="filterGenre('Science-Fiction')">Science-Fiction</button>
+      <button onclick="filterGenre('Thriller')">Thriller</button>
+    </div>
+    
+    <div class="films-grid" id="filmsGrid">
+      <!-- Les films seront générés par JavaScript -->
+    </div>
+    
+    <!-- Modal fiche de film -->
+    <div id="filmModal" class="modal" aria-hidden="true">
+      <div class="modal-card" role="dialog" aria-modal="true">
+        <div class="modal-poster">
+          <img id="modalPoster" src="" alt="Affiche du film">
+        </div>
+        <div class="modal-content">
+          <h2 id="modalTitle">Titre</h2>
+          <p id="modalMeta" style="color:#666;margin:6px 0;"></p>
+          <p id="modalGenre" style="font-weight:600;color:#667eea;text-transform:uppercase;margin:6px 0;"></p>
+          <p id="modalDirector" style="margin:6px 0;color:#444;"></p>
+          <p id="modalDescription" style="margin-top:12px;color:#333;line-height:1.5;"></p>
+        </div>
+      </div>
+      <button class="modal-close" id="modalClose">✕</button>
+    </div>
+<section class="films-liste" style="margin-top:60px;">
+  <h2 style="color:white;text-align:center;margin-bottom:20px;">
+    🎬 MyMovieShelf – Liste Fixe
+  </h2>
+
+  <div class="films-grid">
+    <!-- Film 1 -->
+    <div class="film-card" onclick="alert('Ouvrir page détail Inception')">
+      <img src="https://via.placeholder.com/300x400?text=Inception" alt="Inception">
+      <div class="film-info">
+        <h3>Inception</h3>
+        <p class="annee">2010</p>
+        <p class="genre">Science-Fiction, Thriller</p>
+      </div>
+    </div>
+
+    <!-- Film 2 -->
+    <div class="film-card" onclick="alert('Ouvrir page détail Matrix')">
+      <img src="https://via.placeholder.com/300x400?text=The+Matrix" alt="The Matrix">
+      <div class="film-info">
+        <h3>The Matrix</h3>
+        <p class="annee">1999</p>
+        <p class="genre">Science-Fiction, Action</p>
+      </div>
+    </div>
+
+    <!-- Film 3 -->
+    <div class="film-card" onclick="alert('Ouvrir page détail Pulp Fiction')">
+      <img src="https://via.placeholder.com/300x400?text=Pulp+Fiction" alt="Pulp Fiction">
+      <div class="film-info">
+        <h3>Pulp Fiction</h3>
+        <p class="annee">1994</p>
+        <p class="genre">Crime, Drame</p>
+      </div>
+    </div>
+
+    <!-- Film 4 -->
+    <div class="film-card" onclick="alert('Ouvrir page détail Dark Knight')">
+      <img src="https://via.placeholder.com/300x400?text=The+Dark+Knight" alt="The Dark Knight">
+      <div class="film-info">
+        <h3>The Dark Knight</h3>
+        <p class="annee">2008</p>
+        <p class="genre">Action, Crime</p>
+      </div>
+    </div>
+
+    <!-- Film 5 -->
+    <div class="film-card" onclick="alert('Ouvrir page détail Interstellar')">
+      <img src="https://via.placeholder.com/300x400?text=Interstellar" alt="Interstellar">
+      <div class="film-info">
+        <h3>Interstellar</h3>
+        <p class="annee">2014</p>
+        <p class="genre">Science-Fiction, Drame</p>
+      </div>
+    </div>
+
+    <!-- Film 6 -->
+    <div class="film-card" onclick="alert('Ouvrir page détail Forrest Gump')">
+      <img src="https://via.placeholder.com/300x400?text=Forrest+Gump" alt="Forrest Gump">
+      <div class="film-info">
+        <h3>Forrest Gump</h3>
+        <p class="annee">1994</p>
+        <p class="genre">Drame, Romance</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+    
+    <footer>
+      <p>&copy; 2024 Mon Catalogue de Films. Tous droits réservés.</p>
+    </footer>
+  </div>
+  
+  <script>
+    const films = [
+      {
+        titre: "Inception",
+        année: 2010,
+        genre: "Science-Fiction",
+        réalisateur: "Christopher Nolan",
+        description: "Un voleur qui s'introduit dans les rêves pour y voler des secrets et implémenter des idées.",
+        note: 8.8,
+        emoji: "🌀",
+        image: "https://picsum.photos/seed/inception/800/1200"
+      },
+      {
+        titre: "The Dark Knight",
+        année: 2008,
+        genre: "Action",
+        réalisateur: "Christopher Nolan",
+        description: "Batman affronte le Joker, qui sème le chaos à Gotham.",
+        note: 9.0,
+        emoji: "🦇",
+        image: "https://picsum.photos/seed/darkknight/800/1200"
+      },
+      {
+        titre: "Parasite",
+        année: 2019,
+        genre: "Thriller",
+        réalisateur: "Bong Joon-ho",
+        description: "Une famille pauvre s'infiltre dans la maison d'une famille aisée, avec des conséquences imprévues.",
+        note: 8.6,
+        emoji: "🏘️",
+        image: "https://picsum.photos/seed/parasite/800/1200"
+      },
+      {
+        titre: "Amélie",
+        année: 2001,
+        genre: "Comédie",
+        réalisateur: "Jean-Pierre Jeunet",
+        description: "Une jeune femme timide décide d'améliorer la vie des personnes qui l'entourent.",
+        note: 8.3,
+        emoji: "🌸",
+        image: "https://picsum.photos/seed/amelie/800/1200"
+      },
+      {
+        titre: "Forrest Gump",
+        année: 1994,
+        genre: "Drame",
+        réalisateur: "Robert Zemeckis",
+        description: "La vie incroyable d'un homme simple témoin et acteur d'événements historiques.",
+        note: 8.8,
+        emoji: "🏃",
+        image: "https://picsum.photos/seed/forrest/800/1200"
+      },
+      {
+        titre: "Interstellar",
+        année: 2014,
+        genre: "Science-Fiction",
+        réalisateur: "Christopher Nolan",
+        description: "Des explorateurs spatiaux traversent un trou de ver pour trouver une nouvelle planète habitable.",
+        note: 8.6,
+        emoji: "🚀",
+        image: "https://picsum.photos/seed/interstellar/800/1200"
+      },
+      {
+        titre: "Joker",
+        année: 2019,
+        genre: "Thriller",
+        réalisateur: "Todd Phillips",
+        description: "Portrait sombre d'un homme en marge de la société qui devient le Joker.",
+        note: 8.4,
+        emoji: "🎭",
+        image: "https://picsum.photos/seed/joker/800/1200"
+      },
+      {
+        titre: "La Vie est Belle",
+        année: 1997,
+        genre: "Drame",
+        réalisateur: "Roberto Benigni",
+        description: "Un père utilise l'imagination pour protéger son fils pendant la guerre.",
+        note: 8.6,
+        emoji: "🌟",
+        image: "https://picsum.photos/seed/lavieestbelle/800/1200"
+      },
+      {
+        titre: "Mad Max Fury Road",
+        année: 2015,
+        genre: "Action",
+        réalisateur: "George Miller",
+        description: "Une course spectaculaire à travers un désert post-apocalyptique.",
+        note: 8.1,
+        emoji: "🚗",
+        image: "https://picsum.photos/seed/madmax/800/1200"
+      },
+      {
+        titre: "Pulp Fiction",
+        année: 1994,
+        genre: "Action",
+        réalisateur: "Quentin Tarantino",
+        description: "Histoires mêlées de criminels, de dialogues mémorables et de situations inattendues.",
+        note: 8.9,
+        emoji: "🔫",
+        image: "https://picsum.photos/seed/pulpfiction/800/1200"
+      },
+      {
+        titre: "Titanic",
+        année: 1997,
+        genre: "Drame",
+        réalisateur: "James Cameron",
+        description: "Une histoire d'amour tragique à bord du célèbre paquebot.",
+        note: 7.9,
+        emoji: "🚢",
+        image: "https://picsum.photos/seed/titanic/800/1200"
+      },
+      {
+        titre: "Gladiateur",
+        année: 2000,
+        genre: "Action",
+        réalisateur: "Ridley Scott",
+        description: "Un général romain déchu cherche vengeance en tant que gladiateur.",
+        note: 8.5,
+        emoji: "⚔️",
+        image: "https://picsum.photos/seed/gladiator/800/1200"
+      }
+    ];
+    
+    let genreCourant = "Tous";
+    
+    function afficherFilms(filmsAfficher) {
+      const grid = document.getElementById('filmsGrid');
+      grid.innerHTML = '';
+      
+      filmsAfficher.forEach((film, idx) => {
+        const card = document.createElement('div');
+        card.className = 'film-card';
+        card.setAttribute('data-index', idx);
+        card.innerHTML = `
+          <div class="film-poster"><img src="${film.image}" alt="Affiche ${film.titre}"></div>
+          <div class="film-info">
+            <h3>${film.titre}</h3>
+            <div class="film-year">${film.année}</div>
+            <div class="film-genre">${film.genre}</div>
+            <div class="film-director">Réalisateur: ${film.réalisateur}</div>
+            <div class="film-description">${film.description}</div>
+            <div class="film-rating">${film.note}</div>
+          </div>
+        `;
+        card.addEventListener('click', () => showDetails(film));
+        grid.appendChild(card);
+      });
+    }
+    
+    function filterGenre(genre) {
+      genreCourant = genre;
+      
+      document.querySelectorAll('.filter-buttons button').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      // mark clicked button active
+      // if event is present use it, otherwise find by label
+      if (window.event && window.event.target) {
+        window.event.target.classList.add('active');
+      } else {
+        document.querySelectorAll('.filter-buttons button').forEach(btn => {
+          if (btn.textContent.trim() === genre) btn.classList.add('active');
+        });
+      }
+      
+      const filmsFiltrés = genre === "Tous" 
+        ? films 
+        : films.filter(f => f.genre === genre);
+      
+      afficherFilms(filmsFiltrés);
+    }
+    
+    document.getElementById('searchInput').addEventListener('keyup', function(e) {
+      const terme = e.target.value.toLowerCase();
+      const filmsFiltrés = films.filter(f => 
+        f.titre.toLowerCase().includes(terme) ||
+        f.réalisateur.toLowerCase().includes(terme)
+      );
+      afficherFilms(filmsFiltrés);
+    });
+    
+    // Affichage initial
+    afficherFilms(films);
+
+    // --- Fiche de film (modal) ---
+    const modal = document.getElementById('filmModal');
+    const modalPoster = document.getElementById('modalPoster');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalMeta = document.getElementById('modalMeta');
+    const modalGenre = document.getElementById('modalGenre');
+    const modalDirector = document.getElementById('modalDirector');
+    const modalDescription = document.getElementById('modalDescription');
+    const modalClose = document.getElementById('modalClose');
+
+    function showDetails(film) {
+  modalPoster.src = film.image;
+  modalTitle.textContent = film.titre;
+  modalMeta.textContent = film.année + " • Note : " + film.note;
+  modalGenre.textContent = film.genre;
+  modalDirector.textContent = "Réalisateur : " + film.réalisateur;
+  modalDescription.textContent = film.description;
+
+  modal.classList.add("open");
+  modal.setAttribute("aria-hidden", "false");
+}
+
+// Fermer la modal
+modalClose.addEventListener("click", () => {
+  modal.classList.remove("open");
+  modal.setAttribute("aria-hidden", "true");
+});
+
+// Fermer en cliquant en dehors de la carte
+modal.addEventListener("click", (e) => {
+  if (e.target === modal) {
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden", "true");
+  }
+});
+
+
+// --- Mode sombre ---
+const toggleTheme = document.getElementById("toggleTheme");
+
+toggleTheme.addEventListener("click", () => {
+  document.body.classList.toggle("dark-mode");
+
+  // Optionnel : sauvegarder le thème
+  if (document.body.classList.contains("dark-mode")) {
+    localStorage.setItem("theme", "dark");
+  } else {
+    localStorage.setItem("theme", "light");
+  }
+});
+
+// Restaurer le thème sauvegardé
+if (localStorage.getItem("theme") === "dark") {
+  document.body.classList.add("dark-mode");
+}
+
+/* Grille responsive ultra-simple */
+.grid-responsive {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+    width: 100%;
+}
+
+/* Adaptation responsive */
+@media (max-width: 1200px) {
+    .grid-responsive {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .grid-responsive {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .grid-responsive {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+}
+
+@media (max-width: 400px) {
+    .grid-responsive {
+        grid-template-columns: 1fr;
+    }
+}
+
+ </script>
+</body>
+</html>
